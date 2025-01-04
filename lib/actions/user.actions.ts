@@ -22,7 +22,6 @@ export async function signInWithCredentials(
     if (isRedirectError(error)) {
       throw error;
     }
-
     return { success: false, message: 'Invalid email or password' };
   }
 }
