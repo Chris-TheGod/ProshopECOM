@@ -120,11 +120,11 @@ export async function addItemToCart(data: CartItem) {
 }
 
 export async function getMyCart() {
-  // Check for the cart cookie
+  // Check for cart cookie
   const sessionCartId = (await cookies()).get('sessionCartId')?.value;
   if (!sessionCartId) throw new Error('Cart session not found');
 
-  // Get session and user id
+  // Get session and user ID
   const session = await auth();
   const userId = session?.user?.id ? (session.user.id as string) : undefined;
 
@@ -139,10 +139,10 @@ export async function getMyCart() {
   return convertToPlainObject({
     ...cart,
     items: cart.items as CartItem[],
-    itemsPrice: cart.itemsPrice.toString,
-    totalPrice: cart.totalPrice.toString,
-    shippingPrice: cart.shippingPrice.toString,
-    taxPrice: cart.taxPrice.toString,
+    itemsPrice: cart.itemsPrice.toString(),
+    totalPrice: cart.totalPrice.toString(),
+    shippingPrice: cart.shippingPrice.toString(),
+    taxPrice: cart.taxPrice.toString(),
   });
 }
 
