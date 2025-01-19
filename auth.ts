@@ -88,7 +88,7 @@ export const config = {
 
         if (trigger === 'signIn' || 'signUp') {
           const cookiesObject = await cookies();
-          const sessionCartId = await cookiesObject.get('sessionCartId')?.value;
+          const sessionCartId = cookiesObject.get('sessionCartId')?.value;
 
           if (sessionCartId) {
             const sessionCart = await prisma.cart.findFirst({
