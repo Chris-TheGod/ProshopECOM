@@ -161,7 +161,7 @@ export async function approvePayPalOrder(
   data: { orderID: string }
 ) {
   try {
-    // Get order from db
+    // Get order from database
     const order = await prisma.order.findFirst({
       where: {
         id: orderId,
@@ -188,7 +188,7 @@ export async function approvePayPalOrder(
         status: captureData.status,
         email_address: captureData.payer.email_address,
         pricePaid:
-          captureData.purchase_units[0]?.payments.captures[0]?.amount?.value,
+          captureData.purchase_units[0]?.payments?.captures[0]?.amount?.value,
       },
     });
 
@@ -203,15 +203,14 @@ export async function approvePayPalOrder(
   }
 }
 
-// Update order to paid
-async function updateOrderToPaid({
+export async function updateOrderToPaid({
   orderId,
   paymentResult,
 }: {
   orderId: string;
   paymentResult?: PaymentResult;
 }) {
-  // Get order from db
+  // Get order from database
   const order = await prisma.order.findFirst({
     where: {
       id: orderId,
@@ -227,7 +226,7 @@ async function updateOrderToPaid({
 
   // Transaction to update order and account for product stock
   await prisma.$transaction(async (tx) => {
-    // Iterate over products and update the stock
+    // Iterate over products and update stock
     for (const item of order.orderitems) {
       await tx.product.update({
         where: { id: item.productId },
