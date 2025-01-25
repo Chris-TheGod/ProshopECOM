@@ -2,10 +2,10 @@ import NextAuth from 'next-auth';
 import { PrismaAdapter } from '@auth/prisma-adapter';
 import { prisma } from '@/db/prisma';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import { compareSync } from 'bcrypt-ts-edge';
 import type { NextAuthConfig } from 'next-auth';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
+import { compareSync } from 'bcrypt-ts-edge';
 
 export const config = {
   pages: {
@@ -26,14 +26,14 @@ export const config = {
       async authorize(credentials) {
         if (credentials == null) return null;
 
-        // Find user in db
+        // Find user in database
         const user = await prisma.user.findFirst({
           where: {
             email: credentials.email as string,
           },
         });
 
-        // Check if user exists and if the pw matches
+        // Check if user exists and if the password matches
         if (user && user.password) {
           const isMatch = compareSync(
             credentials.password as string,
@@ -50,7 +50,7 @@ export const config = {
             };
           }
         }
-        // If user does not exist or pw does not match return null
+        // If user does not exist or password does not match return null
         return null;
       },
     }),
@@ -75,18 +75,18 @@ export const config = {
         token.id = user.id;
         token.role = user.role;
 
-        // Of user has no name then use the email
+        // If user has no name then use the email
         if (user.name === 'NO_NAME') {
           token.name = user.email!.split('@')[0];
 
-          // Update db to reflect the token name
+          // Update database to reflect the token name
           await prisma.user.update({
             where: { id: user.id },
             data: { name: token.name },
           });
         }
 
-        if (trigger === 'signIn' || 'signUp') {
+        if (trigger === 'signIn' || trigger === 'signUp') {
           const cookiesObject = await cookies();
           const sessionCartId = cookiesObject.get('sessionCartId')?.value;
 
@@ -111,6 +111,11 @@ export const config = {
         }
       }
 
+      // Handle session updates
+      if (session?.user.name && trigger === 'update') {
+        token.name = session.user.name;
+      }
+
       return token;
     },
     authorized({ request, auth }: any) {
@@ -125,10 +130,10 @@ export const config = {
         /\/admin/,
       ];
 
-      // Get pathname from the request URL object
+      // Get pathname from the req URL object
       const { pathname } = request.nextUrl;
 
-      // Check if user is not authenticated and accessing a protected auth
+      // Check if user is not authenticated and accessing a protected path
       if (!auth && protectedPaths.some((p) => p.test(pathname))) return false;
 
       // Check for session cart cookie
@@ -139,15 +144,16 @@ export const config = {
         // Clone the req headers
         const newRequestHeaders = new Headers(request.headers);
 
-        // Create new res and add the new headers
+        // Create new response and add the new headers
         const response = NextResponse.next({
           request: {
             headers: newRequestHeaders,
           },
         });
 
-        // Set newly generated sessionCartId in the res cookies
+        // Set newly generated sessionCartId in the response cookies
         response.cookies.set('sessionCartId', sessionCartId);
+
         return response;
       } else {
         return true;

@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
+import { updateProfile } from '@/lib/actions/user.actions';
 import { updateProfileSchema } from '@/lib/validators';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSession } from 'next-auth/react';
@@ -17,6 +18,7 @@ import { z } from 'zod';
 
 const ProfileForm = () => {
   const { data: session, update } = useSession();
+  console.log(session);
 
   const form = useForm<z.infer<typeof updateProfileSchema>>({
     resolver: zodResolver(updateProfileSchema),
@@ -28,8 +30,34 @@ const ProfileForm = () => {
 
   const { toast } = useToast();
 
-  const onSubmit = () => {
-    return;
+  const onSubmit = async (values: z.infer<typeof updateProfileSchema>) => {
+    try {
+      const res = await updateProfile(values);
+
+      if (!res.success) {
+        return toast({
+          variant: 'destructive',
+          description: res.message,
+        });
+      }
+
+      const newSession = {
+        ...session,
+        user: {
+          ...session?.user,
+          name: values.name,
+        },
+      };
+
+      await update(newSession);
+      console.log(values);
+
+      toast({
+        description: res.message,
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -56,7 +84,6 @@ const ProfileForm = () => {
               </FormItem>
             )}
           />
-
           <FormField
             control={form.control}
             name='name'
